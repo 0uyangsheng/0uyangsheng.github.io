@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://yoursite.com/2018/04/20/Build-Ubuntu-for-ARM-Platform-From-Scratch/</loc>
+    
+    <lastmod>2018-04-24T09:05:09.425Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://yoursite.com/2018/04/20/Linux-command-and-shell/</loc>
     
     <lastmod>2018-04-20T07:43:37.652Z</lastmod>

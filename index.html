@@ -313,6 +313,210 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/20/Build-Ubuntu-for-ARM-Platform-From-Scratch/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="OuyangSheng">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OuyangSheng's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/04/20/Build-Ubuntu-for-ARM-Platform-From-Scratch/" itemprop="url">从头开始移植Ubuntu系统到ARM平台（基于全志H3）</a></h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-04-20T16:35:17+08:00">
+                2018-04-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            <!--noindex-->
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/04/20/Build-Ubuntu-for-ARM-Platform-From-Scratch/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count hc-comment-count" data-xid="2018/04/20/Build-Ubuntu-for-ARM-Platform-From-Scratch/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+              <!--/noindex-->
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article</span>
+                
+                <span title="Words count in article">
+                  667
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time</span>
+                
+                <span title="Reading time">
+                  3
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <img src="/2018/04/20/Build-Ubuntu-for-ARM-Platform-From-Scratch/linux.jpg">
+<h3 id="起点"><a href="#起点" class="headerlink" title="起点"></a>起点</h3><p>在ARM SOC上移植Ubuntu系统并不是一件容易的事情，要对镜像文件的组成，系统的启动顺序非常熟悉。在网上searching一番，发现一个很神奇的网站-&gt;<a href="https://docs.armbian.com/Developer-Guide_Build-Preparation/" target="_blank" rel="noopener">Armbian</a>,这个网站开发者在大量的开发板上做了移植工作，包括allwinner H3/H5、Rockchip RK3328、amlogic S905x等，并且有详细的文档，以及开源的编译系统。</p>
+<p>其实，参考Armbian的文档，即可搭建好完整编译环境，并针对你的板子（前提是里面已经支持的SoC）修改uboot、kernel、编译脚本即可定制，都是开源的。我尝试在H3平台上搭建，并成功制作了镜像，进到了系统。</p>
+<h3 id="编译系统"><a href="#编译系统" class="headerlink" title="编译系统"></a>编译系统</h3><p>如果需要定制一些功能，如添加、删除一些脚本，应用程序，就必须完整看懂整个编译逻辑。Armbian上介绍是：</p>
+<img src="/2018/04/20/Build-Ubuntu-for-ARM-Platform-From-Scratch/process.png">
+<p>从<a href="http://docs.khadas.com/social/MapoutBuildUbuntuFromScratch/" target="_blank" rel="noopener">khadas开发板网站</a> 上有更形象的图（但未必准确，尤其是对Initramfs与inittrd的理解）：</p>
+<img src="/2018/04/20/Build-Ubuntu-for-ARM-Platform-From-Scratch/map.png">
+<p>对照编译脚本来看：</p>
+<p>从根目录<code>compile.sh</code>开始，进入<code>main.sh</code>，主要工作在后者里完成，关键步骤：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">1# Check <span class="keyword">and</span> install dependencies, directory structure <span class="keyword">and</span> settings</span><br><span class="line">prepare_host</span><br><span class="line"><span class="built_in">..</span><span class="built_in">..</span><span class="built_in">..</span><span class="built_in">..</span><span class="built_in">..</span>.</span><br><span class="line">2# 下载uboot及kernel</span><br><span class="line">fetch_from_repo <span class="string">"<span class="variable">$BOOTSOURCE</span>"</span> <span class="string">"<span class="variable">$BOOTDIR</span>"</span> <span class="string">"<span class="variable">$BOOTBRANCH</span>"</span> <span class="string">"yes"</span></span><br><span class="line">fetch_from_repo <span class="string">"<span class="variable">$KERNELSOURCE</span>"</span> <span class="string">"<span class="variable">$KERNELDIR</span>"</span> <span class="string">"<span class="variable">$KERNELBRANCH</span>"</span> <span class="string">"yes"</span></span><br><span class="line"><span class="built_in">..</span><span class="built_in">..</span><span class="built_in">..</span><span class="built_in">..</span><span class="built_in">..</span>.</span><br><span class="line">3# Compile u-boot <span class="keyword">if</span> packed .deb does <span class="keyword">not</span> exist</span><br><span class="line">compile_uboot</span><br><span class="line"><span class="built_in">..</span><span class="built_in">..</span><span class="built_in">..</span><span class="built_in">..</span><span class="built_in">..</span>.</span><br><span class="line">4# Compile kernel <span class="keyword">if</span> packed .deb does <span class="keyword">not</span> exist</span><br><span class="line">compile_kernel</span><br><span class="line"><span class="built_in">..</span><span class="built_in">..</span><span class="built_in">..</span><span class="built_in">..</span><span class="built_in">..</span>.</span><br><span class="line">5# create board support package /create desktop package / build additional packages</span><br><span class="line">create_board_package</span><br><span class="line">create_desktop_package</span><br><span class="line">chroot_build_packages</span><br><span class="line"><span class="built_in">..</span><span class="built_in">..</span><span class="built_in">..</span><span class="built_in">..</span><span class="built_in">..</span>.</span><br><span class="line">6# Starting rootfs <span class="keyword">and</span> image building process</span><br><span class="line">debootstrap_ng</span><br><span class="line"><span class="built_in">..</span><span class="built_in">..</span><span class="built_in">..</span><span class="built_in">..</span><span class="built_in">..</span>.</span><br><span class="line">7# make the image</span><br><span class="line">prepare_partitions</span><br><span class="line">create_image</span><br></pre></td></tr></table></figure>
+<h3 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h3><ol>
+<li>里面有非常多的细节，要花些时间看明白，尤其要对shell scripts比较熟悉。</li>
+<li>ramfs、Initramfs、ramdisk、inittrd、rootfs、tmpfs的区别，参考<a href="https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt" target="_blank" rel="noopener">ramfs-rootfs-initramfs</a>。看了半天貌似也没看懂。简单来说，ramdisk是一种基于ram的块设备，ramfs是一种基于ram的文件系统，开发ramfs的目的是因为ramdisk浪费了太多的内存cache页。initrd是init ramdisk的缩写，initramfs是init ramfs的缩写。名称里加了init前缀，代表它们具有了引导内核启动的功能。</li>
+<li>自己做的过程中，添加了一个自动挂载硬盘的功能，通过udev，但发现FAT32可以挂载，NTFS不能，网上searching一番并多次尝试，最终找到可行解决方案。参考如下<a href="https://serverfault.com/a/767079" target="_blank" rel="noopener">自动挂载</a>。也有第三方的解决方案，如autofs, HAL, udisks, udisks2, usbmount，并未尝试。另，一些有用的调试命令：</li>
+</ol>
+<figure class="highlight smali"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">udevadm info /dev/sda1 --此命令可以查看相关设备的udev属性，依据此来写rules。</span><br><span class="line">udevadm<span class="built_in"> monitor </span>--udev  --观察 uevent事件</span><br><span class="line">blkid   fdisk   lsblk</span><br></pre></td></tr></table></figure>
+<p>以上只是一些索引记录，供参考。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+    <div>
+      
+    </div>
+    
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/20/Linux-command-and-shell/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -932,7 +1136,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-count">3</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
@@ -943,7 +1147,7 @@
             
             <div class="site-state-item site-state-categories">
               <a href="/categories/index.html">
-                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-count">3</span>
                 <span class="site-state-item-name">categories</span>
               </a>
             </div>
@@ -954,7 +1158,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-count">3</span>
                 <span class="site-state-item-name">tags</span>
               </a>
             </div>
