@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://yoursite.com/2018/04/25/Deep-into-Rk3399-uboot/</loc>
+    
+    <lastmod>2018-04-26T10:06:46.227Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://yoursite.com/2018/04/20/Build-Ubuntu-for-ARM-Platform-From-Scratch/</loc>
     
     <lastmod>2018-04-24T09:05:09.425Z</lastmod>
