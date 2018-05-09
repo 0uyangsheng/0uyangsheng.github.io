@@ -324,6 +324,265 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/05/Embeded-Linux-kernel-boot-process/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="OuyangSheng">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OuyangSheng's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/05/Embeded-Linux-kernel-boot-process/" itemprop="url">Embeded Linux kernel boot process</a></h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-05-05T10:50:37+08:00">
+                2018-05-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            <!--noindex-->
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/05/05/Embeded-Linux-kernel-boot-process/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count hc-comment-count" data-xid="2018/05/05/Embeded-Linux-kernel-boot-process/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+              <!--/noindex-->
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article</span>
+                
+                <span title="Words count in article">
+                  1,262
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time</span>
+                
+                <span title="Reading time">
+                  5
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <img src="/2018/05/05/Embeded-Linux-kernel-boot-process/linux-kernel-map.jpg" title="Linux kernel map">
+<h2 id="第一阶段（从跳转kernel-image到跑到start-kernel之前）"><a href="#第一阶段（从跳转kernel-image到跑到start-kernel之前）" class="headerlink" title="第一阶段（从跳转kernel image到跑到start_kernel之前）"></a>第一阶段（从跳转kernel image到跑到start_kernel之前）</h2><p>kernel入口地址在ENTRY(stext)，代码在arch/arm/kernel/head.S。</p>
+<p>如何体现的？</p>
+<p>在arch/arm/kernel/vmlinux.lds.S中，同时参考编译后生成的System.map文件，System.map是内核的内核符号表，在这里可以找到函数地址，变量地址，包括一些链接过程中的地址定义等等。</p>
+<p>其中要做的事情：</p>
+<ul>
+<li>设置为SVC模式，关闭所有中断。</li>
+</ul>
+<p>为什么要设置成SVC模式？</p>
+<p>除了用户模式之外的其他6种处理器模式称为特权模式。特权模式下，程序可以访问所有的系统资源（除了特定模式下的影子寄存器），也可以任意地进行处理器模式的切换，特权模式中，除系统模式外，其他5种模式又称为异常模式。<br>而用户模式下访问的资源受限，故不能使用用户模式，系统模式的优先级低于异常模式，故不使用系统模式，快中断模式、中断模式、中止模式、未定义模式用于特殊场景下由CPU自动切入,故不使用,所以需要使用SVC模式。</p>
+<p>为什么要关闭所有中断？</p>
+<p>在启动过程中，中断环境并没有完全准备好，也就是中断向量表和中断处理函数并没有完成设置，一旦有中断产生，可能会导致预想不到的问题，或者是程序跑飞。因此，在准备好中断环境之前，需要关闭所有中断。</p>
+<ul>
+<li>获取CPU ID，提取相应的proc info</li>
+</ul>
+<p>这里存在的MMU标识，也就是我们需要在打开MMU之前需要先获取procinfo的原因，因为打开MMU之前需要配置临时内核页表，而配置临时内核页表需要这里的MMU标识来进行设置。</p>
+<ul>
+<li>验证tags或者dtb</li>
+</ul>
+<p>dtb里面存放了各种硬件信息，如果dtb有问题，会导致后续开机过程中读取的设备信息有问题而导致无法开机。<br>在生成dtb的时候会在头部上添加一个幻数magic，而验证dtb是否合法主要也就是看这个dtb的magic是否和预期的值一致。 </p>
+<ul>
+<li>创建临时内核页表的页表项</li>
+</ul>
+<p>为了打开MMU，内核需要创建一个临时内核页表，用于kenrel启动过程中的打开MMU的过渡阶段。 在打开MMU的过程中，CPU还是按照地址顺序一条接着一条去获取指令，也就是说此时PC指针还是指向这段代码区域的物理地址。<br>当MMU打开之后，如果没有恒等映射的话，PC指针此时还是指向这段代码区域的物理地址，但实际上CPU会把PC指针的地址当作虚拟地址进行操作，而造成找不到对应的物理地址。</p>
+<ul>
+<li><p>使能MMU</p>
+</li>
+<li><p>跳转到start_kernel，也就是跳转到第二阶段，看其中寄存器说明，存的什么值</p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">* The following fragment of code is executed with the MMU on in MMU mode,</span></span><br><span class="line"><span class="comment">* and uses absolute addresses; this is not position independent.</span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment">*  r0  = cp#15 control register</span></span><br><span class="line"><span class="comment">*  r1  = machine ID</span></span><br><span class="line"><span class="comment">*  r2  = atags/dtb pointer</span></span><br><span class="line"><span class="comment">*  r9  = processor ID</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">    __INIT</span><br><span class="line"><span class="symbol">__mmap_switched</span>:</span><br><span class="line">    <span class="keyword">adr </span>   <span class="built_in">r3</span>, __mmap_switched_data</span><br><span class="line"></span><br><span class="line">    <span class="keyword">ldmia </span>   <span class="built_in">r3</span>!, &#123;<span class="built_in">r4</span>, <span class="built_in">r5</span>, <span class="built_in">r6</span>, <span class="built_in">r7</span>&#125;</span><br><span class="line">    <span class="keyword">cmp </span>   <span class="built_in">r4</span>, <span class="built_in">r5</span>                <span class="comment">@ Copy data segment if needed</span></span><br><span class="line"><span class="number">1</span>:    <span class="keyword">cmpne </span>   <span class="built_in">r5</span>, <span class="built_in">r6</span></span><br><span class="line">    <span class="keyword">ldrne </span>   <span class="built_in">fp</span>, [<span class="built_in">r4</span>], <span class="number">#4</span></span><br><span class="line">    <span class="keyword">strne </span>   <span class="built_in">fp</span>, [<span class="built_in">r5</span>], <span class="number">#4</span></span><br><span class="line">    <span class="keyword">bne </span>   <span class="number">1</span>b</span><br><span class="line"></span><br><span class="line">    <span class="keyword">mov </span>   <span class="built_in">fp</span>, <span class="number">#0</span>                <span class="comment">@ Clear BSS (and zero fp)</span></span><br><span class="line"><span class="number">1</span>:    <span class="keyword">cmp </span>   <span class="built_in">r6</span>, <span class="built_in">r7</span></span><br><span class="line">    <span class="keyword">strcc </span>   <span class="built_in">fp</span>, [<span class="built_in">r6</span>],<span class="number">#4</span></span><br><span class="line">    <span class="keyword">bcc </span>   <span class="number">1</span>b</span><br><span class="line"></span><br><span class="line"><span class="symbol">ARM</span>(    <span class="keyword">ldmia </span>   <span class="built_in">r3</span>, &#123;<span class="built_in">r4</span>, <span class="built_in">r5</span>, <span class="built_in">r6</span>, <span class="built_in">r7</span>, <span class="built_in">sp</span>&#125;)</span><br><span class="line"><span class="symbol">THUMB</span>(    <span class="keyword">ldmia </span>   <span class="built_in">r3</span>, &#123;<span class="built_in">r4</span>, <span class="built_in">r5</span>, <span class="built_in">r6</span>, <span class="built_in">r7</span>&#125;    )</span><br><span class="line"><span class="symbol">THUMB</span>(    <span class="keyword">ldr </span>   <span class="built_in">sp</span>, [<span class="built_in">r3</span>, <span class="number">#16</span>]        )</span><br><span class="line">    <span class="keyword">str </span>   <span class="built_in">r9</span>, [<span class="built_in">r4</span>]            <span class="comment">@ Save processor ID</span></span><br><span class="line">    <span class="keyword">str </span>   <span class="built_in">r1</span>, [<span class="built_in">r5</span>]            <span class="comment">@ Save machine type</span></span><br><span class="line">    <span class="keyword">str </span>   <span class="built_in">r2</span>, [<span class="built_in">r6</span>]            <span class="comment">@ Save atags pointer</span></span><br><span class="line">    <span class="keyword">bic </span>   <span class="built_in">r4</span>, <span class="built_in">r0</span>, <span class="symbol">#CR_A</span>            <span class="comment">@ Clear 'A' bit</span></span><br><span class="line">    <span class="keyword">stmia </span>   <span class="built_in">r7</span>, &#123;<span class="built_in">r0</span>, <span class="built_in">r4</span>&#125;            <span class="comment">@ Save control register values</span></span><br><span class="line">    <span class="keyword">b </span>   start_kernel</span><br><span class="line"><span class="symbol">ENDPROC</span>(__mmap_switched)</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="第二阶段-start-kernel"><a href="#第二阶段-start-kernel" class="headerlink" title="第二阶段 - start_kernel"></a>第二阶段 - start_kernel</h2><p>以下只剖析个大概，不对细节做太深入的探讨。</p>
+<p>代码路径：init/main.c  从start_kernel()开始，挑重点的介绍：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">重要函数</th>
+<th style="text-align:center">作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">setup_arch</td>
+<td style="text-align:center">architecture-specific setup ,如arch\arm\mach-sunxi\Sun8i.c 中MACHINE_START(SUNXI, “sun8i”) 下相关</td>
+</tr>
+<tr>
+<td style="text-align:center">mm_init</td>
+<td style="text-align:center">memory management</td>
+</tr>
+<tr>
+<td style="text-align:center">sched_init</td>
+<td style="text-align:center">调度相关</td>
+</tr>
+<tr>
+<td style="text-align:center">vfs_caches_init</td>
+<td style="text-align:center">file system, including kernfs, sysfs, rootfs, mount tree</td>
+</tr>
+<tr>
+<td style="text-align:center">rest_init</td>
+<td style="text-align:center">道生一（start_kernel–&gt;cpu_idle），一生二（kernel_init和kthreadd），二生三（即前面0、1和2三个进程），三生万物（1号进程是所有用户态进程的祖先，2号进程是所有内核线程的祖先。可以通过ps命令，查看PID及PPID的关系。</td>
+</tr>
+</tbody>
+</table>
+<p>其中大部分的工作是在rest_init中完成，对于Android系统来讲init进程在 system/core/init/init.c实现，下图代表Android系统的boot process：</p>
+<img src="/2018/05/05/Embeded-Linux-kernel-boot-process/Android-process.png" title="android boot process">
+<p>设备驱动的init及probe也是在其中实现的，如下面的调用栈：</p>
+<figure class="highlight gherkin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">`--&gt; rest_init</span><br><span class="line">    |</span><br><span class="line"><span class="string">    `--&gt; kernel_init</span></span><br><span class="line"><span class="string">          </span>|</span><br><span class="line">          |<span class="string">--&gt; kernel_init_freeable</span></span><br><span class="line"><span class="string">          </span>|<span class="string">    </span>|</span><br><span class="line">          |<span class="string">    </span>|<span class="string">--&gt; do_basic_setup</span></span><br><span class="line"><span class="string">          </span>|<span class="string">    </span>|<span class="string">    </span>|</span><br><span class="line">          |<span class="string">    </span>|<span class="string">    `--&gt; do_initcalls</span></span><br><span class="line"><span class="string">          </span>|<span class="string">    </span>|<span class="string">        :</span></span><br><span class="line"><span class="string">          </span>|<span class="string">    </span>|<span class="string">        :--&gt; early init calls</span></span><br><span class="line"><span class="string">          </span>|<span class="string">    </span>|<span class="string">        :--&gt; core init calls</span></span><br><span class="line"><span class="string">          </span>|<span class="string">    </span>|<span class="string">        :--&gt; post core init calls</span></span><br><span class="line"><span class="string">          </span>|<span class="string">    </span>|<span class="string">        :--&gt; arch init calls</span></span><br><span class="line"><span class="string">          </span>|<span class="string">    </span>|<span class="string">        :    :</span></span><br><span class="line"><span class="string">          </span>|<span class="string">    </span>|<span class="string">        :    `--&gt; customize_machine</span></span><br><span class="line"><span class="string">          </span>|<span class="string">    </span>|<span class="string">        :        </span>|</span><br><span class="line">          |<span class="string">    </span>|<span class="string">        :        `--&gt; machine_desc-&gt;init_machine</span></span><br><span class="line"><span class="string">          </span>|<span class="string">    </span>|<span class="string">        :</span></span><br><span class="line"><span class="string">          </span>|<span class="string">    </span>|<span class="string">        :--&gt; subsys init calls</span></span><br><span class="line"><span class="string">          </span>|<span class="string">    </span>|<span class="string">        :--&gt; fs init calls</span></span><br><span class="line"><span class="string">          </span>|<span class="string">    </span>|<span class="string">        :--&gt; device init calls</span></span><br><span class="line"><span class="string">          </span>|<span class="string">    </span>|<span class="string">        :    :</span></span><br><span class="line"><span class="string">          </span>|<span class="string">    </span>|<span class="string">        :    `--&gt; module_init() entries</span></span><br><span class="line"><span class="string">          </span>|<span class="string">    </span>|<span class="string">        :        drivers are probed during driver registration</span></span><br><span class="line"><span class="string">          </span>|<span class="string">    </span>|<span class="string">        :</span></span><br><span class="line"><span class="string">          </span>|<span class="string">    </span>|<span class="string">        `--&gt; late init calls</span></span><br></pre></td></tr></table></figure>
+<p>从以上也可以看出kernel的启动顺序。</p>
+<hr>
+<p>References:</p>
+<p><a href="https://blog.csdn.net/ooonebook/article/details/52710290" target="_blank" rel="noopener">kernel 启动流程</a></p>
+<p><a href="https://danielmaker.github.io/blog/linux/inside_start_kernel.html" target="_blank" rel="noopener">深入淺出 start_kernel()</a></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+    <div>
+      
+    </div>
+    
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/25/Deep-into-Rk3399-uboot/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1415,7 +1674,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-count">5</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
