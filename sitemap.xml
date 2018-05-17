@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://yoursite.com/2018/05/14/Android%20boot%20optimization/</loc>
+    
+    <lastmod>2018-05-17T01:40:39.659Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://yoursite.com/2018/05/05/Embeded-Linux-kernel-boot-process/</loc>
     
     <lastmod>2018-05-09T01:46:51.695Z</lastmod>

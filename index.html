@@ -324,6 +324,252 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/14/Android boot optimization/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="OuyangSheng">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OuyangSheng's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/14/Android boot optimization/" itemprop="url">Android开机启动优化</a></h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-05-14T20:37:32+08:00">
+                2018-05-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            <!--noindex-->
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/05/14/Android boot optimization/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count hc-comment-count" data-xid="2018/05/14/Android boot optimization/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+              <!--/noindex-->
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article</span>
+                
+                <span title="Words count in article">
+                  2,338
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time</span>
+                
+                <span title="Reading time">
+                  10
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <img src="/2018/05/14/Android%20boot%20optimization/fast.jpg" title="Fast android">
+<h2 id="开机流程"><a href="#开机流程" class="headerlink" title="开机流程"></a>开机流程</h2><p>如下图：</p>
+<img src="/2018/05/14/Android%20boot%20optimization/boot.png" title="Android boot process">
+<h2 id="Linux优化"><a href="#Linux优化" class="headerlink" title="Linux优化"></a>Linux优化</h2><p>可以通过添加打印module init的log，来check每个module初始化时的时间。从而找到花费时间比较多的module:<br><figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">--- a/init/main.c</span><br><span class="line">+++ b/init/main.c</span><br><span class="line"><span class="comment">@@</span> <span class="number">-785</span>,<span class="number">7</span> +<span class="number">785</span>,<span class="number">7</span> <span class="comment">@@</span> int __init_or_module</span><br><span class="line">do_one_initcall(initcall_t <span class="function"><span class="keyword">fn</span>)</span></span><br><span class="line"><span class="function">        <span class="keyword">if</span> <span class="params">(initcall_blacklisted(<span class="keyword">fn</span>)</span>)</span></span><br><span class="line"><span class="function">                <span class="keyword">return</span></span></span><br><span class="line"><span class="function">-EPERM</span>;</span><br><span class="line"></span><br><span class="line">-      <span class="keyword">if</span> (initcall_debug)</span><br><span class="line">+      <span class="keyword">if</span> (<span class="number">1</span>)</span><br><span class="line">                ret =</span><br><span class="line">do_one_initcall_debug(<span class="function"><span class="keyword">fn</span>)</span>;</span><br></pre></td></tr></table></figure></p>
+<p>优化方案：</p>
+<ol>
+<li>通过一个比gzip更快的方式去解压内核镜像；</li>
+<li>去掉系统中一些不必要的log打印；</li>
+<li>去掉一些系统中不需要的驱动模块；</li>
+<li>启动时即以最大频率（cpu/DDR）且多核一起跑；</li>
+</ol>
+<h2 id="Android优化"><a href="#Android优化" class="headerlink" title="Android优化"></a>Android优化</h2><p>查看时间：</p>
+<p><code>adb logcat -v threadtime -b events &gt; logcat_envents.txt</code></p>
+<p><code>adb logcat -v threadtime &gt; logcat.txt</code></p>
+<p>具体到全志H5平台，查看LOG发现：</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">01</span>-<span class="number">01</span> <span class="number">03</span>:<span class="number">00</span>:<span class="number">23.233</span>  <span class="number">1503</span>  <span class="number">1503</span> I auditd  : type=<span class="number">2000</span> audit(<span class="number">0.0</span>:<span class="number">1</span>): initialized</span><br><span class="line"></span><br><span class="line"><span class="number">01</span>-<span class="number">01</span> <span class="number">03</span>:<span class="number">00</span>:<span class="number">24.730</span>  <span class="number">1503</span>  <span class="number">1503</span> I auditd  : type=<span class="number">1403</span> audit(<span class="number">0.0</span>:<span class="number">2</span>): policy loaded auid=<span class="number">4294967295</span> ses=<span class="number">4294967295</span></span><br><span class="line"></span><br><span class="line"><span class="number">01</span>-<span class="number">01</span> <span class="number">03</span>:<span class="number">00</span>:<span class="number">31.590</span>  <span class="number">1520</span>  <span class="number">1520</span> I boot_progress_start: <span class="number">8846</span> <span class="regexp">//</span>systemclock.uptimemillis(),开机到当前时间，毫秒。</span><br><span class="line"></span><br><span class="line"><span class="regexp">//</span>Zygote 进程preload 开始时间 <span class="number">32</span>bit zygote</span><br><span class="line"></span><br><span class="line"><span class="number">01</span>-<span class="number">01</span> <span class="number">03</span>:<span class="number">00</span>:<span class="number">34.168</span>  <span class="number">1520</span>  <span class="number">1520</span> I boot_progress_preload_start: <span class="number">11425</span></span><br><span class="line"></span><br><span class="line"><span class="regexp">//</span>Zygote 进程preload 结束时间<span class="number">32</span>bit zygot</span><br><span class="line"></span><br><span class="line"><span class="number">01</span>-<span class="number">01</span> <span class="number">03</span>:<span class="number">00</span>:<span class="number">37.394</span>  <span class="number">1520</span>  <span class="number">1520</span> I boot_progress_preload_end: <span class="number">14650</span></span><br><span class="line"></span><br><span class="line"><span class="regexp">//</span>System server 开始运行时间</span><br><span class="line"></span><br><span class="line"><span class="number">01</span>-<span class="number">01</span> <span class="number">03</span>:<span class="number">00</span>:<span class="number">37.780</span>  <span class="number">1964</span>  <span class="number">1964</span> I boot_progress_system_run: <span class="number">15037</span></span><br><span class="line"></span><br><span class="line"><span class="regexp">//</span>Package Scan 开始</span><br><span class="line"></span><br><span class="line"><span class="number">01</span>-<span class="number">01</span> <span class="number">03</span>:<span class="number">00</span>:<span class="number">38.553</span>  <span class="number">1964</span>  <span class="number">1964</span> I boot_progress_pms_start: <span class="number">15810</span></span><br><span class="line"></span><br><span class="line"><span class="regexp">//</span>System 目录开始scan</span><br><span class="line"></span><br><span class="line"><span class="number">01</span>-<span class="number">01</span> <span class="number">03</span>:<span class="number">00</span>:<span class="number">38.931</span>  <span class="number">1964</span>  <span class="number">1964</span> I boot_progress_pms_system_scan_start: <span class="number">16188</span></span><br><span class="line"></span><br><span class="line"><span class="regexp">//</span>data 目录开始scan</span><br><span class="line"></span><br><span class="line"><span class="number">01</span>-<span class="number">01</span> <span class="number">03</span>:<span class="number">00</span>:<span class="number">42.210</span>  <span class="number">1964</span>  <span class="number">1964</span> I boot_progress_pms_data_scan_start: <span class="number">19467</span></span><br><span class="line"></span><br><span class="line"><span class="regexp">//</span>package scan 结束时间</span><br><span class="line"></span><br><span class="line"><span class="number">01</span>-<span class="number">01</span> <span class="number">03</span>:<span class="number">00</span>:<span class="number">42.230</span>  <span class="number">1964</span>  <span class="number">1964</span> I boot_progress_pms_scan_end: <span class="number">19487</span></span><br><span class="line"></span><br><span class="line"><span class="regexp">//</span>package manager ready</span><br><span class="line"></span><br><span class="line"><span class="number">01</span>-<span class="number">01</span> <span class="number">03</span>:<span class="number">00</span>:<span class="number">42.727</span>  <span class="number">1964</span>  <span class="number">1964</span> I boot_progress_pms_ready: <span class="number">19984</span></span><br><span class="line"></span><br><span class="line"><span class="regexp">//</span>Activity manager ready，这个事件之后便会启动home Activity。</span><br><span class="line"></span><br><span class="line"><span class="number">01</span>-<span class="number">01</span> <span class="number">03</span>:<span class="number">00</span>:<span class="number">45.432</span>  <span class="number">1964</span>  <span class="number">1964</span> I boot_progress_ams_ready: <span class="number">22689</span></span><br><span class="line"></span><br><span class="line"><span class="regexp">//</span>HomeActivity 启动完毕，系统将检查目前所有的window是否画完，如果所有的window（包括wallpaper， Keyguard 等）都已经画好，系统会设置属性service.bootanim.<span class="keyword">exit</span>值为<span class="number">1</span>.并且trigger下面的event。</span><br><span class="line"></span><br><span class="line"><span class="number">01</span>-<span class="number">01</span> <span class="number">03</span>:<span class="number">00</span>:<span class="number">49.393</span>  <span class="number">1964</span>  <span class="number">2003</span> I boot_progress_enable_screen: <span class="number">26650</span></span><br><span class="line"></span><br><span class="line"><span class="regexp">//</span>SF设置service.bootanim.<span class="keyword">exit</span>属性值为<span class="number">1</span>，标志系统要结束开机动画了，可以用来跟踪开机动画结尾部分消耗的时间</span><br><span class="line"></span><br><span class="line"><span class="number">01</span>-<span class="number">01</span> <span class="number">03</span>:<span class="number">00</span>:<span class="number">49.545</span>  <span class="number">1525</span>  <span class="number">1527</span> I sf_stop_bootanim: <span class="number">26801</span></span><br><span class="line"><span class="number">01</span>-<span class="number">01</span> <span class="number">03</span>:<span class="number">00</span>:<span class="number">49.579</span>  <span class="number">1964</span>  <span class="number">2020</span> I wm_boot_animation_done: <span class="number">26836</span></span><br><span class="line"></span><br><span class="line"><span class="regexp">//</span> 打开Launcher APP</span><br><span class="line"><span class="number">01</span>-<span class="number">01</span> <span class="number">03</span>:<span class="number">00</span>:<span class="number">50.516</span>  <span class="number">1964</span>  <span class="number">2429</span> I am_create_activity: [<span class="number">0</span>,<span class="number">14996279</span>,<span class="number">5</span>,tv.lfstrm.smotreshka_launcher<span class="regexp">/tv.lfstrm.mediaapp_launcher.MainActivity,android.intent.action.MAIN,NULL,NULL,268435712]</span></span><br></pre></td></tr></table></figure>
+<p>用bootchart 图形化显示Android启动过程，如图</p>
+<img src="/2018/05/14/Android%20boot%20optimization/bootchart.png" title="Allwinner H5 android7.1 bootchart">
+<h4 id="定制本地服务"><a href="#定制本地服务" class="headerlink" title="定制本地服务"></a>定制本地服务</h4><p>Init程序的log信息位于kernel Log中，通过检索“init starting”，我们可以找到init进程启动了哪些本地服务，如：</p>
+<figure class="highlight prolog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">[    <span class="number">5.632951</span>] init: <span class="symbol">Starting</span> service <span class="string">'logd-reinit'</span>...</span><br><span class="line">[    <span class="number">5.635827</span>] init: <span class="symbol">Starting</span> service <span class="string">'zygote'</span>...</span><br><span class="line">[    <span class="number">5.637221</span>] init: <span class="symbol">Starting</span> service <span class="string">'netd'</span>...</span><br><span class="line">[    <span class="number">5.643302</span>] init: <span class="symbol">Starting</span> service <span class="string">'healthd'</span>...</span><br><span class="line">[    <span class="number">5.644695</span>] init: <span class="symbol">Starting</span> service <span class="string">'lmkd'</span>...</span><br><span class="line">[    <span class="number">5.646006</span>] init: <span class="symbol">Starting</span> service <span class="string">'servicemanager'</span>...</span><br><span class="line">[    <span class="number">5.647547</span>] init: <span class="symbol">Starting</span> service <span class="string">'surfaceflinger'</span>...</span><br><span class="line">[    <span class="number">5.752483</span>] init: <span class="symbol">Starting</span> service <span class="string">'console'</span>...</span><br><span class="line">[    <span class="number">6.154863</span>] init: <span class="symbol">Starting</span> service <span class="string">'audioserver'</span>...</span><br><span class="line">[    <span class="number">6.156551</span>] init: <span class="symbol">Starting</span> service <span class="string">'cameraserver'</span>...</span><br><span class="line">[    <span class="number">6.158068</span>] init: <span class="symbol">Starting</span> service <span class="string">'displayd'</span>...</span><br><span class="line">[    <span class="number">6.160115</span>] init: <span class="symbol">Starting</span> service <span class="string">'drm'</span>...</span><br><span class="line">[    <span class="number">6.161186</span>] init: <span class="symbol">Starting</span> service <span class="string">'gpio'</span>...</span><br><span class="line">[    <span class="number">6.162746</span>] init: <span class="symbol">Starting</span> service <span class="string">'installd'</span>...</span><br><span class="line">[    <span class="number">6.164462</span>] init: <span class="symbol">Starting</span> service <span class="string">'keystore'</span>...</span><br><span class="line">[    <span class="number">6.165992</span>] init: <span class="symbol">Starting</span> service <span class="string">'mediacodec'</span>...</span><br><span class="line">[    <span class="number">6.167700</span>] init: <span class="symbol">Starting</span> service <span class="string">'mediadrm'</span>...</span><br><span class="line">[    <span class="number">6.169339</span>] init: <span class="symbol">Starting</span> service <span class="string">'mediaextractor'</span>...</span><br><span class="line">[    <span class="number">6.171560</span>] init: <span class="symbol">Starting</span> service <span class="string">'media'</span>...</span><br><span class="line">[    <span class="number">6.172651</span>] init: <span class="symbol">Starting</span> service <span class="string">'multi_ir'</span>...</span><br><span class="line">[    <span class="number">6.174182</span>] init: <span class="symbol">Starting</span> service <span class="string">'ril-daemon'</span>...</span><br><span class="line">[    <span class="number">6.175224</span>] init: <span class="symbol">Starting</span> service <span class="string">'systemmix'</span>...</span><br><span class="line">[    <span class="number">6.399317</span>] init: <span class="symbol">Starting</span> service <span class="string">'adbd'</span>...</span><br><span class="line">[    <span class="number">6.733571</span>] init: <span class="symbol">Starting</span> service <span class="string">'bootanim'</span>...</span><br></pre></td></tr></table></figure>
+<p>Init进程解析init.rc及init.xxx.rc之类的文件，启动一些本地服务，如果我们的设备中没有电话模块、蓝牙模块，我们可以将这些没用的本地服务在init.rc里注释掉。笔者做了对比，去掉几个本地服务与没有去掉本地服务，二者在开机时间上几乎没有减少多少，这也可以理解，因为本地服务就是几个程序，少执行和多执行几个程序对于总体开机时间没有多大影响，不过，去掉没有使用的本地服务，对整个系统性能来说，会有微不足道的提升。</p>
+<p>优化建议：</p>
+<ol>
+<li>去掉开机动画服务(service bootanim /system/bin/bootanimation)可以一定程度上提高系统的启动速度。</li>
+<li>可以通过在execute_one_command函数中统计测量 ，比如大于100ms的命令打印出来，再分析定位原因，这里命令执行时间长基本算BUG。</li>
+</ol>
+<h4 id="preloaded-classes-amp-resources"><a href="#preloaded-classes-amp-resources" class="headerlink" title="preloaded classes &amp; resources"></a>preloaded classes &amp; resources</h4><p>全志H5所花费时间：</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">01<span class="selector-tag">-01</span> 03<span class="selector-pseudo">:00</span><span class="selector-pseudo">:12.869</span>  1520  1520 <span class="selector-tag">I</span> <span class="selector-tag">Zygote</span>  : <span class="selector-tag">Preloading</span> <span class="selector-tag">classes</span>...</span><br><span class="line">01<span class="selector-tag">-01</span> 03<span class="selector-pseudo">:00</span><span class="selector-pseudo">:14.982</span>  1520  1520 <span class="selector-tag">I</span> <span class="selector-tag">Zygote</span>  : ..<span class="selector-class">.preloaded</span> 4162 <span class="selector-tag">classes</span> <span class="selector-tag">in</span> 2113<span class="selector-tag">ms</span>.</span><br><span class="line">01<span class="selector-tag">-01</span> 03<span class="selector-pseudo">:00</span><span class="selector-pseudo">:15.683</span>  1520  1520 <span class="selector-tag">I</span> <span class="selector-tag">Zygote</span>  : <span class="selector-tag">Preloading</span> <span class="selector-tag">resources</span>...</span><br><span class="line">01<span class="selector-tag">-01</span> 03<span class="selector-pseudo">:00</span><span class="selector-pseudo">:15.879</span>  1520  1520 <span class="selector-tag">I</span> <span class="selector-tag">Zygote</span>  : ..<span class="selector-class">.preloaded</span> 114 <span class="selector-tag">resources</span> <span class="selector-tag">in</span> 196<span class="selector-tag">ms</span>.</span><br><span class="line">01<span class="selector-tag">-01</span> 03<span class="selector-pseudo">:00</span><span class="selector-pseudo">:15.887</span>  1520  1520 <span class="selector-tag">I</span> <span class="selector-tag">Zygote</span>  : ..<span class="selector-class">.preloaded</span> 41 <span class="selector-tag">resources</span> <span class="selector-tag">in</span> 8<span class="selector-tag">ms</span>.</span><br></pre></td></tr></table></figure>
+<p>Android系统为了提高应用程序的启动速度，会在Zygote进程初始化过程中加载一些常用的java class和资源文件到进程的内存中，从而共享常用的class和resourse资源。</p>
+<p>preloaded-classes list（<code>frameworks\base\preloaded-classes</code>）中预加载的类位于dalvik zygote进程的heap中。在zygote衍生一个新的dalvik进程后，新进程只需加载heap中没有预加载的类（这些后加载进来的类成为该进程所private独有的），这样便加快了应用程序的启动速度。实际上这是一种以空间换时间的办法，因为几乎没有一个应用程序能够使用到所有的预加载类，必定有很多类对于该应用程序来说是冗余的。但是也正如Google所说，智能手机开机远没有启动应用程序频繁——用户开机一次，但直到下次再开机之前可能要运行多个应用程序。因此牺牲一点启动时间来换取应用程序加载时的较快速度是合算的。</p>
+<p>preloaded-classes list已经是Google Android工程师使用众多测试工具分析，加以手动微调后形成的最优化预加载列表，涵盖了智能机上最长见的应用类型所需要的各种类。很难想象我们自己能够有什么手段能够获得比这样更优的一个预加载列表。所以，除非你的Android系统是被移植到非智能手机设备上使用（例如MID、EBOOK，可以不需要Telephony相关的类），不建议去“优化”preloaded-classes list。</p>
+<p>优化建议：</p>
+<ol>
+<li>preloadClasses()与preloadResources()可以放到两个线程里面跑。</li>
+<li>修改zygote的nice值，及thread priority。</li>
+</ol>
+<h4 id="定制Android系统服务"><a href="#定制Android系统服务" class="headerlink" title="定制Android系统服务"></a>定制Android系统服务</h4><p>由Android的启动过程可知，init进程启动了app_process作为zygote，在app_process里启动了Dalvik虚拟机，然后加载执行了第一个Java程序ZygoteInit作为Dalvik主线程，在ZygoteInit里fork了第一个Java程序SystemServer，在SystemServer里启动了大量的Android的核心服务，通常来说这些服务一般不要去动，如果我们的设备里没有使用过某些服务，并且将来也明确不使用，可以将其去掉。</p>
+<p>SystemServer启动了哪些Android服务：</p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">PowerManagerService</span>：电源管理服务  </span><br><span class="line"><span class="symbol">ActivityManagerService</span>：最核心服务之一，Activity管理服务</span><br><span class="line"><span class="symbol">PackageManagerService</span>：程序包管理服务 </span><br><span class="line"><span class="symbol">WindowManagerService</span>：窗口管理服务  </span><br><span class="line"><span class="keyword">BluetoothService：蓝牙服务 </span> </span><br><span class="line"><span class="symbol">WifiP2pService</span>：Wifi点对点直联服务  </span><br><span class="line"><span class="symbol">WifiService</span>：WIFI服务  </span><br><span class="line"><span class="symbol">ConnectivityService</span>：网络连接状态服务  </span><br><span class="line"><span class="symbol">MountService</span>：磁盘加载服务，通常也mountd和vold服务结合 </span><br><span class="line"><span class="symbol">AudioService</span>：AudioFlinger上层的封装的音量控制管理服务  </span><br><span class="line"><span class="symbol">UsbService</span>：USB Host和device管理服务</span><br></pre></td></tr></table></figure>
+<p>优化这些services其实就是剔除我们不需要的一些services，而且不仅仅是修改SystemServer.java的问题，任何使用到被优化剔除掉的服务的代码都必须加以修改，否则系统肯定是起不来的。这样工作量大，而且难度也不小，并且有一定风险。因此对这些services的优化要慎之又慎。</p>
+<h4 id="PackageManagerService扫描、检查APK安装包信息"><a href="#PackageManagerService扫描、检查APK安装包信息" class="headerlink" title="PackageManagerService扫描、检查APK安装包信息"></a>PackageManagerService扫描、检查APK安装包信息</h4><p>PMS对/system/framework，/system/app，/data/app，/data/app-private目录中的APK扫描耗费了大量的时间，如果预置的三方应用很多，这样启动的时间就会越长。</p>
+<p>优化建议：</p>
+<ol>
+<li><p>/system/app下的应用，如果是预置应用，在Android.mk建议加上LOCAL_DEX_PREOPT := true控制，在/system/vendor下的预置应用，如果此应用编译时间比较长的，也使用上LOCAL_DEX_PREOPT := true</p>
+</li>
+<li><p>尽量减少data区内置app的数量，这个会严重影响开机速度，特别是第一次的开机速度。放在system的app  尽量生成odex  这样会加快开机速度。</p>
+</li>
+</ol>
+<h4 id="Readahead"><a href="#Readahead" class="headerlink" title="Readahead"></a>Readahead</h4><p>因为IO慢的原因（cpu与存储类设备如emmc通讯），有两段耗时的地方：1. Zygote的preload 资源和class；2. PackageManagerService的包扫描。可以采用Linux上使用较多的readahead机制，大概原理是：</p>
+<ol>
+<li><p>统计开机过程中，读取的块数据信息，记录下来保存；</p>
+</li>
+<li><p>再次开机，通过记录下来的块数据读取信息，直接起一个服务，预先开始读，zygote或packagemanagerservice要读文件的时候，文件数据已经在cache中了。</p>
+</li>
+</ol>
+<p>这样主要IO时间，跑到readahead进程去了。</p>
+<h2 id="reference："><a href="#reference：" class="headerlink" title="reference："></a>reference：</h2><p><a href="https://blog.csdn.net/mr_raptor/article/details/8006721" target="_blank" rel="noopener">深入浅出 - Android系统移植与平台开发（六）－ 为Android启动加速</a></p>
+<p><a href="https://blog.csdn.net/lqxandroid2012/article/details/54317298" target="_blank" rel="noopener">Android开机速度优化简单回顾——readahead</a></p>
+<p><a href="https://blog.csdn.net/xxm282828/article/details/49095839" target="_blank" rel="noopener">android 5.1.1开机优化(framework层)</a></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+    <div>
+      
+    </div>
+    
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/05/Embeded-Linux-kernel-boot-process/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1674,7 +1920,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-count">6</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
@@ -1685,7 +1931,7 @@
             
             <div class="site-state-item site-state-categories">
               <a href="/categories/index.html">
-                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-count">5</span>
                 <span class="site-state-item-name">categories</span>
               </a>
             </div>
@@ -1696,7 +1942,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-count">5</span>
                 <span class="site-state-item-name">tags</span>
               </a>
             </div>
