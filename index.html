@@ -324,6 +324,226 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/07/Linux-clock-subsystem/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="OuyangSheng">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OuyangSheng's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/06/07/Linux-clock-subsystem/" itemprop="url">Linux clock subsystem</a></h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-06-07T10:44:40+08:00">
+                2018-06-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            <!--noindex-->
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/06/07/Linux-clock-subsystem/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count hc-comment-count" data-xid="2018/06/07/Linux-clock-subsystem/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+              <!--/noindex-->
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article</span>
+                
+                <span title="Words count in article">
+                  1,201
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time</span>
+                
+                <span title="Reading time">
+                  5
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>Linux Clock的框架图：</p>
+<img src="/2018/06/07/Linux-clock-subsystem/ccf.png" title="CCF">
+<p>以上的框架图就能说明整个clock子系统的运作情况，从上往下看，clock consumer – clock core  – clock provider，同时通过DTS来配置串接。大多数Linux子系统中都呈现这种分层式架构。</p>
+<p>clock consumer ：向其它driver提供操作clocks的通用API。<br>clock core：实现clock控制的通用逻辑，这部分和硬件无关。<br>clock provider：将和硬件相关的clock控制逻辑封装成操作函数集，交由底层的platform开发者实现，由通用逻辑调用。</p>
+<h3 id="硬件相关"><a href="#硬件相关" class="headerlink" title="硬件相关"></a>硬件相关</h3><p>那么板子上clock相关模块到底是如何分布和规划的？</p>
+<img src="/2018/06/07/Linux-clock-subsystem/clk-hw.png" title="Clock Hardware">
+<p>上图从左往右看，最开始的源头产生：Oscillator  –&gt; 中间可能有倍频PLL、分频Divider、多路选择Mux、开关Gate –&gt; clock使用的硬件模块。</p>
+<p>也就是说，软件层面的架构 与 硬件层面的架构有一定程度的吻合。比如软件需要提供：1.Enable/Disable Clk；2. Set clk rate; 3. 选择clock的parent。 </p>
+<h3 id="软件架构"><a href="#软件架构" class="headerlink" title="软件架构"></a>软件架构</h3><p>主要是如何体现clock consumer <---> clock core(CCF)  <---> clock provider。两个层面问题，一是clock provider是如何注册进CCF的，二是clock consumer如何从CCF通过相应API获取对应的Clock控制。</---></---></p>
+<h5 id="1-Clock-provider注册进CCF"><a href="#1-Clock-provider注册进CCF" class="headerlink" title="1.Clock provider注册进CCF"></a>1.Clock provider注册进CCF</h5><p>以Allwinner H5 Linux3.10为例，初始化的起点从start_kernel() 进入板级DT_MACHINE_START，如下：<br>linux-3.10\arch\arm\mach-sunxi\Sun50i.c<br><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">DT_MACHINE_START</span><span class="params">(SUNXI_DT, CONFIG_SUNXI_SOC_NAME)</span></span></span><br><span class="line"> <span class="selector-class">.map_io</span>	= sunxi_map_io,</span><br><span class="line"> <span class="selector-class">.init_time</span>	= sunxi_timer_init,</span><br><span class="line"> <span class="selector-class">.dt_compat</span>	= sunxi_board_dt_compat,</span><br><span class="line">MACHINE_END</span><br></pre></td></tr></table></figure></p>
+<p>从sunxi_timer_init – &gt; of_clk_init –&gt; __clk_of_table中所有需要注册的各种类型clock – &gt; linux-3.10\drivers\clk\sunxi\clk-sun50iw2.c 中CLK_OF_DECLARE定义的初始化函数。</p>
+<p>以上有两个问题阐释下，一是<code>__clk_of_table</code>从何而来，二是具体初始化哪些clock类型。<br><code>__clk_of_table</code>是从所有<code>CLK_OF_DECLARE</code>定义而来，而初始化哪些clock则是由<code>CLK_OF_DECLARE</code>中的定义与Clock Provider DTS中的定义匹配而来，举个Fixed Clock的例子：<br>clk-sun50iw2.c中定义<code>CLK_OF_DECLARE(sunxi_fixed_clk, &quot;allwinner,fixed-clock&quot;,of_sunxi_fixed_clk_setup);</code> ，而DTS(sun50iw1p1-clk.dtsi)中的定义：<br><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* register fixed rate clock*/</span></span><br><span class="line"><span class="symbol">  clk_losc:</span> losc &#123;</span><br><span class="line">   <span class="comment">#clock-cells = &lt;0&gt;;</span></span><br><span class="line">   compatible = <span class="string">"allwinner,fixed-clock"</span><span class="comment">;</span></span><br><span class="line">   <span class="keyword">clock-frequency </span>= &lt;<span class="number">32768</span>&gt;<span class="comment">;</span></span><br><span class="line">   <span class="keyword">clock-output-names </span>= <span class="string">"losc"</span><span class="comment">;</span></span><br><span class="line">  &#125;<span class="comment">;</span></span><br><span class="line"></span><br><span class="line"><span class="symbol">  clk_hosc:</span> hosc &#123;</span><br><span class="line">   <span class="comment">#clock-cells = &lt;0&gt;;</span></span><br><span class="line">   compatible = <span class="string">"allwinner,fixed-clock"</span><span class="comment">;</span></span><br><span class="line">   <span class="keyword">clock-frequency </span>= &lt;<span class="number">24000000</span>&gt;<span class="comment">;</span></span><br><span class="line">   <span class="keyword">clock-output-names </span>= <span class="string">"hosc"</span><span class="comment">;</span></span><br><span class="line">  &#125;<span class="comment">;</span></span><br></pre></td></tr></table></figure></p>
+<p>从上面可以看到是通过<code>allwinner,fixed-clock</code>字段来匹配的，匹配之后最终通过clk_register/of_clk_add_provider添加到CCF中以供Clock Consumer使用。这只是其中一种clock类型，那么还有哪些类型呢？<br>根据clock的特点，clock framework将clock分为fixed rate、gate、devider、mux、fixed factor、composite六类，每一类clock都有相似的功能、相似的控制方式，因而可以使用相同的逻辑，统一处理，这充分体现了面向对象的思想。</p>
+<ul>
+<li>fixed rate clock：具有固定的频率，不能开关、不能调整频率、不能选择parent、不需要提供任何的clk_ops回调函数，是最简单的一类clock。</li>
+<li>gate clock：只可开关，会提供.enable/.disable回调。</li>
+<li>divider clock：可以设置分频值，因而会提供.recalc_rate/.set_rate/.round_rate回调。</li>
+<li>mux clock：可以选择多个parent，因为会实现.get_parent/.set_parent/.recalc_rate回调。</li>
+<li>fixed factor clock：具有固定的factor（即multiplier和divider），clock的频率是由parent clock的频率，乘以mul，除以div，多用于一些具有固定分频系数的clock。由于parent clock的频率可以改变，因而fix factor clock也可该改变频率，因此也会提供.recalc_rate/.set_rate/.round_rate等回调。</li>
+<li>composite clock：顾名思义，就是mux、divider、gate等clock的组合。</li>
+</ul>
+<h5 id="2-Clock-Consumer如何使用Clock"><a href="#2-Clock-Consumer如何使用Clock" class="headerlink" title="2.Clock Consumer如何使用Clock"></a>2.Clock Consumer如何使用Clock</h5><p>以Emmc模块为例，首先需要在DTS中EMMC相关部分配置，指明需要消费哪些Clock Provider中提供clock类型：<br><figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">sdc2:</span> <span class="class">sdmmc@01C11000 </span>&#123;</span><br><span class="line"> compatible = <span class="string">"allwinner,sun50i-sdmmc2"</span>;</span><br><span class="line"> ~~~~~~</span><br><span class="line"> clocks = <span class="params">&lt;<span class="variable">&amp;clk_hosc</span>&gt;</span>,<span class="params">&lt;<span class="variable">&amp;clk_pll_periph1x2</span>&gt;</span>,<span class="params">&lt;<span class="variable">&amp;clk_sdmmc2_mod</span>&gt;</span>,<span class="params">&lt;<span class="variable">&amp;clk_sdmmc2_bus</span>&gt;</span>,<span class="params">&lt;<span class="variable">&amp;clk_sdmmc2_rst</span>&gt;</span>;</span><br><span class="line"> clock-names = <span class="string">"osc24m"</span>,<span class="string">"pll_periph"</span>,<span class="string">"mmc"</span>,<span class="string">"ahb"</span>,<span class="string">"rst"</span>;</span><br><span class="line"> ~~~~~~</span><br><span class="line">     &#125;;</span><br></pre></td></tr></table></figure></p>
+<p>如以上的clk_sdmmc2_mod、clk_sdmmc2_bus、clk_sdmmc2_rst就有在<code>sun50iw1p1-clk.dtsi</code>中定义。然后在emmc驱动相关代码中通过CCF提供的API取得相关clk并配置，如下(<code>sunxi-mmc.c</code>)：<br><figure class="highlight xl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">host</span>-&gt;</span><span class="function"><span class="title">clk_mmc</span> = devm_clk_get(&amp;pdev-&gt;</span>dev, <span class="string">"mmc"</span>);  -- 取得clk</span><br><span class="line"><span class="function"><span class="title">if</span> (IS_ERR(host-&gt;</span>clk_mmc)) &#123;</span><br><span class="line"> <span class="function"><span class="title">dev_err</span>(&amp;pdev-&gt;</span>dev, <span class="string">"Could not get mmc clock\n"</span>);</span><br><span class="line"> <span class="function"><span class="title">ret</span> = PTR_ERR(host-&gt;</span>clk_mmc);</span><br><span class="line"> goto error_disable_regulator;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">ret</span> = clk_prepare_enable(host-&gt;</span>clk_mmc); -- 使能clk</span><br><span class="line"><span class="keyword">if</span> (ret) &#123;</span><br><span class="line"> <span class="function"><span class="title">dev_err</span>(&amp;pdev-&gt;</span>dev, <span class="string">"Enable mmc clk err %d\n"</span>, ret);</span><br><span class="line"> goto error_disable_clk_ahb;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>除了<code>devm_clk_get/clk_prepare_enable</code>外还有一些clock操作的API：</p>
+<ul>
+<li>clk_enable/clk_disable，启动/停止clock。不会睡眠。</li>
+<li>clk_prepare/clk_unprepare，启动clock前的准备工作/停止clock后的善后工作。可能会睡眠。</li>
+<li>clk_get_rate/clk_set_rate/clk_round_rate，clock频率的获取和设置，其中clk_set_rate可能会不成功（例如没有对应的分频比），此时会返回错误。如果要确保设置成功，则需要先调用clk_round_rate接口，得到和需要设置的rate比较接近的那个值。</li>
+<li>获取/选择clock的parent clock。</li>
+<li>clk_prepare_enable，将clk_prepare和clk_enable组合起来，一起调用。clk_disable_unprepare,将clk_disable和clk_unprepare组合起来，一起调用。</li>
+</ul>
+<p>更详细的解读可参考如下。</p>
+<h3 id="ref"><a href="#ref" class="headerlink" title="ref"></a>ref</h3><p><a href="http://www.wowotech.net/linux_kenrel/clk_overview.html" target="_blank" rel="noopener">Linux common clock framework(1)_概述</a><br><a href="http://www.wowotech.net/pm_subsystem/ccf-arch.html" target="_blank" rel="noopener">Common Clock Framework系统结构</a></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+    <div>
+      
+    </div>
+    
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/17/Linux-process/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2255,7 +2475,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">7</span>
+                <span class="site-state-item-count">8</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
