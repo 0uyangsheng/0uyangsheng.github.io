@@ -89,7 +89,7 @@
 <link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="shell," />
+  <meta name="keywords" content="Linux," />
 
 
 
@@ -105,20 +105,23 @@
 
 
 
-<meta name="description" content="系统命令何其多Linux下命令那么多，好几千个，怎么办？用man查询，如 man ls（查看ls的用法）。  看一看有哪些常用命令-&amp;gt; 用户管理 UID，GID  常用命令：id, who, /etc/passwd, groups 账号管理： useradd, passwd, usermod, userdel, groupadd, groupdel, w 文件管理常用命令： pwd, to">
-<meta name="keywords" content="shell">
+<meta name="description" content="前言对于一个IO Port来讲，有两方面需要配置，一是本身的功能设定，二是如果作为GPIO的话输入输出的设定。前者由Pin Controller控制，后者由GPIO Controller控制。 Pin Controller控制包括：  引脚功能配置。例如该I/O pin是一个普通的GPIO还是一些特殊功能引脚（例如memeory bank上CS信号）。 引脚特性配置。例如pull-up/down电">
+<meta name="keywords" content="Linux">
 <meta property="og:type" content="article">
-<meta property="og:title" content="一文了解Linux command and Shell">
-<meta property="og:url" content="http://yoursite.com/2018/04/20/Linux-command-and-shell/index.html">
+<meta property="og:title" content="Linux GPIO-Pinctrl Subsystem">
+<meta property="og:url" content="http://yoursite.com/2018/06/08/Linux-GPIO-Pinctrl-Subsystem/index.html">
 <meta property="og:site_name" content="OuyangSheng&#39;s Blog">
-<meta property="og:description" content="系统命令何其多Linux下命令那么多，好几千个，怎么办？用man查询，如 man ls（查看ls的用法）。  看一看有哪些常用命令-&amp;gt; 用户管理 UID，GID  常用命令：id, who, /etc/passwd, groups 账号管理： useradd, passwd, usermod, userdel, groupadd, groupdel, w 文件管理常用命令： pwd, to">
+<meta property="og:description" content="前言对于一个IO Port来讲，有两方面需要配置，一是本身的功能设定，二是如果作为GPIO的话输入输出的设定。前者由Pin Controller控制，后者由GPIO Controller控制。 Pin Controller控制包括：  引脚功能配置。例如该I/O pin是一个普通的GPIO还是一些特殊功能引脚（例如memeory bank上CS信号）。 引脚特性配置。例如pull-up/down电">
 <meta property="og:locale" content="default">
-<meta property="og:image" content="http://yoursite.com/2018/04/20/Linux-command-and-shell/bash.png">
-<meta property="og:updated_time" content="2018-04-20T07:43:37.652Z">
+<meta property="og:image" content="http://yoursite.com/2018/06/08/Linux-GPIO-Pinctrl-Subsystem/pinctrl.png">
+<meta property="og:image" content="http://yoursite.com/2018/06/08/Linux-GPIO-Pinctrl-Subsystem/io.png">
+<meta property="og:image" content="http://yoursite.com/2018/06/08/Linux-GPIO-Pinctrl-Subsystem/sys.png">
+<meta property="og:image" content="http://yoursite.com/2018/06/08/Linux-GPIO-Pinctrl-Subsystem/gpio.png">
+<meta property="og:updated_time" content="2018-06-08T01:18:11.889Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="一文了解Linux command and Shell">
-<meta name="twitter:description" content="系统命令何其多Linux下命令那么多，好几千个，怎么办？用man查询，如 man ls（查看ls的用法）。  看一看有哪些常用命令-&amp;gt; 用户管理 UID，GID  常用命令：id, who, /etc/passwd, groups 账号管理： useradd, passwd, usermod, userdel, groupadd, groupdel, w 文件管理常用命令： pwd, to">
-<meta name="twitter:image" content="http://yoursite.com/2018/04/20/Linux-command-and-shell/bash.png">
+<meta name="twitter:title" content="Linux GPIO-Pinctrl Subsystem">
+<meta name="twitter:description" content="前言对于一个IO Port来讲，有两方面需要配置，一是本身的功能设定，二是如果作为GPIO的话输入输出的设定。前者由Pin Controller控制，后者由GPIO Controller控制。 Pin Controller控制包括：  引脚功能配置。例如该I/O pin是一个普通的GPIO还是一些特殊功能引脚（例如memeory bank上CS信号）。 引脚特性配置。例如pull-up/down电">
+<meta name="twitter:image" content="http://yoursite.com/2018/06/08/Linux-GPIO-Pinctrl-Subsystem/pinctrl.png">
 
 
 
@@ -147,13 +150,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/04/20/Linux-command-and-shell/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/06/08/Linux-GPIO-Pinctrl-Subsystem/"/>
 
 
 
 
 
-  <title>一文了解Linux command and Shell | OuyangSheng's Blog</title>
+  <title>Linux GPIO-Pinctrl Subsystem | OuyangSheng's Blog</title>
   
 
 
@@ -329,7 +332,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/20/Linux-command-and-shell/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/08/Linux-GPIO-Pinctrl-Subsystem/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="OuyangSheng">
@@ -346,7 +349,7 @@
 
         
         
-          <h2 class="post-title" itemprop="name headline">一文了解Linux command and Shell</h2>
+          <h2 class="post-title" itemprop="name headline">Linux GPIO-Pinctrl Subsystem</h2>
         
 
         <div class="post-meta">
@@ -358,8 +361,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-04-20T15:35:39+08:00">
-                2018-04-20
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-06-08T08:59:59+08:00">
+                2018-06-08
               </time>
             
 
@@ -381,8 +384,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/shell/" itemprop="url" rel="index">
-                    <span itemprop="name">shell</span>
+                  <a href="/categories/Linux/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux</span>
                   </a>
                 </span>
 
@@ -400,8 +403,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/04/20/Linux-command-and-shell/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count hc-comment-count" data-xid="2018/04/20/Linux-command-and-shell/" itemprop="commentsCount"></span>
+                <a href="/2018/06/08/Linux-GPIO-Pinctrl-Subsystem/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count hc-comment-count" data-xid="2018/06/08/Linux-GPIO-Pinctrl-Subsystem/" itemprop="commentsCount"></span>
                 </a>
               </span>
               <!--/noindex-->
@@ -429,7 +432,7 @@
                   <span class="post-meta-item-text">Words count in article</span>
                 
                 <span title="Words count in article">
-                  1,644
+                  1,183
                 </span>
               
 
@@ -445,7 +448,7 @@
                   <span class="post-meta-item-text">Reading time</span>
                 
                 <span title="Reading time">
-                  7
+                  5
                 </span>
               
             </div>
@@ -466,108 +469,40 @@
       
 
       
-        <img src="/2018/04/20/Linux-command-and-shell/bash.png">
-<h2 id="系统命令何其多"><a href="#系统命令何其多" class="headerlink" title="系统命令何其多"></a>系统命令何其多</h2><p>Linux下命令那么多，好几千个，怎么办？用man查询，如 man ls（查看ls的用法）。</p>
-<hr>
-<p>看一看有哪些常用命令-&gt;</p>
-<h4 id="用户管理"><a href="#用户管理" class="headerlink" title="用户管理"></a>用户管理</h4><ul>
-<li>UID，GID</li>
-</ul>
-<p>常用命令：<code>id, who, /etc/passwd, groups</code></p>
-<p>账号管理： <code>useradd, passwd, usermod, userdel, groupadd, groupdel, w</code></p>
-<h4 id="文件管理"><a href="#文件管理" class="headerlink" title="文件管理"></a>文件管理</h4><p>常用命令： <code>pwd, touch, chmod, chown, which, whereis</code></p>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>对于一个IO Port来讲，有两方面需要配置，一是本身的功能设定，二是如果作为GPIO的话输入输出的设定。前者由Pin Controller控制，后者由GPIO Controller控制。</p>
+<p>Pin Controller控制包括：</p>
 <ul>
-<li>find</li>
+<li>引脚功能配置。例如该I/O pin是一个普通的GPIO还是一些特殊功能引脚（例如memeory bank上CS信号）。</li>
+<li>引脚特性配置。例如pull-up/down电阻的设定，drive-strength的设定等。</li>
 </ul>
-<p>查找指定文件并删除：<br><code>find android/ -maxdepth 3 -type f -a -name 2.log -delete</code></p>
-<p>删除所有文件仅保留特定文件：<br><code>find android/ -type f -not -a -name &#39;*.java&#39; -delete</code></p>
-<p>查找指定文件并搜索：<br><code>find android/ -type f -a -name &#39;*.java&#39; | grep -rn &quot;activity&quot;</code></p>
+<p>GPIO Controller控制包括：</p>
 <ul>
-<li>打包： <code>zip, tar</code></li>
+<li>配置GPIO的方向</li>
+<li>如果是输出，可以配置high level或者low level</li>
+<li>如果是输入，可以获取GPIO引脚上的电平状态</li>
 </ul>
-<p>例子：Android压缩SDK：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tar -zcvf xxx.tar.gz sdk_directory_name --exclude=.repo --exclude=.git --exclude=sdk_directory_name/uboot/build --exclude=sdk_directory_name/out --exclude=sdk_directory_name/ S82_SDK_20141121.tar.gz</span><br></pre></td></tr></table></figure></p>
-<p>分卷压缩,网盘上传文件大小有限制这个命令会用到：</p>
-<p><code>tar -zcvf - .repo/ |split -b 4000M - xxx_sdk.tar.gz</code></p>
-<h4 id="文件系统"><a href="#文件系统" class="headerlink" title="文件系统"></a>文件系统</h4><p><code>df, fdisk, mount, lsblk, blkid, /etc/fstab(设置自动挂载)，ln -s(软链接)</code></p>
-<h4 id="字符处理"><a href="#字符处理" class="headerlink" title="字符处理"></a>字符处理</h4><p>grep：<code>-r : 迭代到子文件夹；  -n：行号；  -i：不区分大小写</code></p>
-<p>sort：<code>-n 数字排序   -r 反向排序  -t 指定分隔符</code></p>
-<p>uniq：删除重复内容</p>
-<p>cut：截取文本</p>
-<h4 id="网络管理"><a href="#网络管理" class="headerlink" title="网络管理"></a>网络管理</h4><p>指定IP地址：<code>ipconfig eth0 192.168.1.6 netmask 255.255.255.0</code></p>
-<p>手动打开断开网卡：<code>ifconfig eth0 up/ifconfig etho down</code></p>
-<p>查看系统路由表：<code>route -n</code></p>
-<p>DNS: <code>/etc/hosts， /etc/resolv.conf</code></p>
-<h4 id="进程管理"><a href="#进程管理" class="headerlink" title="进程管理"></a>进程管理</h4><p><code>ps, top, kill, nice</code></p>
-<h4 id="正则表达式"><a href="#正则表达式" class="headerlink" title="正则表达式"></a>正则表达式</h4><p><a href="https://blog.csdn.net/u012359618/article/details/51498959" target="_blank" rel="noopener">8种字符串截取方法</a></p>
+<h3 id="软件架构"><a href="#软件架构" class="headerlink" title="软件架构"></a>软件架构</h3><p>linux kernel中的GPIO subsystem则用两个软件模块来对应上面两类硬件功能：</p>
 <ul>
-<li>sed与awk的区别：</li>
+<li>pin control subsystem的模块图</li>
 </ul>
-<p>如果文件是格式化的，即由分隔符分为多个域的，优先使用awk；</p>
-<p>awk适合按列（域）操作，sed适合按行操作；</p>
-<p>awk适合对文件的抽取整理，sed适合对文件的编辑。</p>
-<hr>
-<h2 id="shell编程"><a href="#shell编程" class="headerlink" title="shell编程"></a>shell编程</h2><h4 id="shell-内建命令"><a href="#shell-内建命令" class="headerlink" title="shell 内建命令"></a>shell 内建命令</h4><p>由bash自身提供的命令，而不是/bin下某个可执行文件，比如：<code>cd，source</code>。如何确定，通过type。</p>
-<p>alias，别名，可以在.bashrc中定制。</p>
-<p>任务前后台切换：bg、fg、jobs。可与Ctrl+z、&amp;联合使用。典型场景是运行比较耗时任务。</p>
-<p>./， .， source 三者执行shell的区别。</p>
-<p>exec：不启动新的shell，而是用要被执行的命令替换当前的shell脚本。exec命令后其他命令将不再执行，且会断开ssh链接。所以一般放到一个子脚本中运行。</p>
-<p>source，就是让script在当前shell内执行、 而不是产生一个sub-shell来执行。 由于所有执行结果均在当前shell内执行、而不是产生一个sub-shell来执行。跟 <code>. xxx.sh</code> 一样效果。</p>
-<p><code>./xxx.sh</code> 是直接fork一个子进程来执行。</p>
-<p>export：跨脚本传递变量。</p>
-<p>read:从标准输入读取一行。</p>
-<p>脚本参数： <code>$1 第一个参数 $2 第二个参数 …… $@ 所有参数  $# 参数个数  $0 脚本本身 $? 上一条命令返回值</code></p>
-<h4 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h4><ol>
-<li>局部变量，只在某个shell中生效。也可用<code>local</code>声明，在函数中生效。</li>
-<li>环境变量，也叫全局变量。系统中有预设一些环境变量，如<code>HOME，PATH</code>，可以通过 <code>echo $PATH</code>访问。<br>如果需要在shell中导出变量给其他子shell中使用可以通过：<code>export VAR=value</code>。</li>
-<li>变量的赋值与取值。变量名与值用<code>=</code>紧紧相连，中间不能有空格。${}是比$更保险的做法。如果值也是引用变量，要用<code>&quot;&quot;</code>,如<code>name=&quot;${name1}&quot;</code>。<code>unset</code>可以取消变量。只读变量通过readonly声明，或是<code>declare -r</code>。</li>
-<li>转义通过<code>\</code>来让特殊字符输出。</li>
-<li>命令替换是指将标准输出作为值赋给某个变量：<code>$(命令)</code>.</li>
-<li><p>()与{}的差别：</p>
-<p> () 将command group置于sub-shell(子shell)中去执行，也称 nested sub-shell。<br> {} 则是在同一个shell内完成，也称non-named command group。</p>
-</li>
-<li><p>常见算术运算符大多需要结合shell的内建命令let来使用。</p>
-</li>
-<li><code>$(())</code> 用来作整数运算的.</li>
-<li><p>Wildcard与Regular Expression的差别.</p>
-<p> wildcard只作用于argument的path上；而RE却只用于”字符串处理” 的程序中，如某些文字处理工具之间：grep， perl， vi，awk，sed，等等， 常用于表示一段连续的字符串，查找和替换,这与路径名一点关系也没有。</p>
-</li>
-</ol>
-<h4 id="测试判断与循环"><a href="#测试判断与循环" class="headerlink" title="测试判断与循环"></a>测试判断与循环</h4><p>测试结构：</p>
-<p><code>test expression</code>   or   <code>[ expression ] 括号内两边有空格</code> 建议采用后面的方式，更容易跟if  while case 这些连用。</p>
-<p>文件测试，常用参数：<code>-e 文件或目录是否存在；-f 文件是否存在；-d 目录是否存在</code>。</p>
-<p>字符串：<code>-z 是否为空；-n 非空返回真；= !=</code></p>
-<p>整数比较：<code>-eq  -gt  -lt</code></p>
-<p>逻辑：两种方式 <code>! -a -o</code>  or  <code>! &amp;&amp; ||</code>。</p>
-<p>command1 &amp;&amp; command2 # command2只有在command1的RV为0(true)的条件下执行。</p>
-<p>command1 || command2 # command2 只有在command1的RV为非0(false)的条件下执行。</p>
-<p>[]与[[]]的区别<a href="http://www.zsythink.net/archives/2252" target="_blank" rel="noopener">Reference</a>：</p>
-<p>当使用‘-n’‘-z’这种判断方式时，‘[]’需要在其中的变量外侧加上双引号，与test命令的用法一致，而使用<code>[[]]</code>时不用。</p>
-<p>判断某个变量的值是否满足某个正则表达式，可以用符号<code>=~</code> + <code>[[]]</code>。</p>
-<p>if 判断结构：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> [ expression ]; <span class="keyword">then</span></span><br><span class="line">    cmd1</span><br><span class="line"><span class="keyword">elif</span> [ exp1 ]; <span class="keyword">then</span></span><br><span class="line">    cmd2</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    cmd3</span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
-<p>case 判断结构：</p>
-<figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">case VAR in</span><br><span class="line"></span><br><span class="line">var1) cmd1<span class="comment">;;</span></span><br><span class="line">var2) cmd2<span class="comment">;;</span></span><br><span class="line">*) cmd3<span class="comment">;;</span></span><br><span class="line"></span><br><span class="line">esac</span><br></pre></td></tr></table></figure>
-<p>for 循环：</p>
-<figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> <span class="type">VAR</span> <span class="keyword">in</span> (<span class="built_in">list</span>)</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line"></span><br><span class="line">    cmd</span><br><span class="line"></span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-<p>while 循环：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> expression</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    cmd</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-<p>until循环结构：（测试假值）。</p>
-<p>select循环，是一种菜单扩展循环方式，等待用户输入在执行。</p>
-<figure class="highlight lasso"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> MENU <span class="keyword">in</span> (<span class="built_in">list</span>)</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    cmd</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
-<p>循环控制：break、continue。</p>
-<h4 id="重定向"><a href="#重定向" class="headerlink" title="重定向"></a>重定向</h4><p>系统在启动一个进程时会同时打开三个文件：标准输入（stdin）、标准输出（stdout）、标准错误输出（stderr），分别用文件标识符0、1 、2来标识。标准输入为键盘，标准输出及错误输出默认为显示器或是串口。</p>
-<p>> ：标准输出覆盖重定向，会覆盖原始文件。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">ls -l /usr/ &gt; ls_usr.txt</span><br><span class="line">等价于</span><br><span class="line">ls -l /usr/ 1&gt; ls_usr.txt</span><br></pre></td></tr></table></figure></p>
-<p>>>: 追加重定向。不清空原始文件。</p>
-<p>>\&amp;: 标识输出重定向，将一个标识的输出重定向到另一个标识的输入。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">COMMAND &gt; stdout_stderr.txt 2&gt;&amp;1 </span><br><span class="line">#2&gt;&amp;1代表 错误输出重定向到标准输出，同时打印到文件中。</span><br><span class="line"></span><br><span class="line">2&gt; /dev/null  #丢弃错误输出</span><br></pre></td></tr></table></figure>
-<p>&lt; : 标准输入重定向。</p>
-<p>&lt;&lt;: 这是所谓的here document, 它可以让我们输入一段文本， 直到读到&lt;&lt; 后指定的字符串。比方说：</p>
-<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ cat &lt;&lt;<span class="literal">EOF</span></span><br><span class="line"><span class="keyword">first</span> <span class="built_in">line</span> here</span><br><span class="line"><span class="keyword">second</span> <span class="built_in">line</span> here</span><br><span class="line"><span class="keyword">third</span> <span class="built_in">line</span> here</span><br><span class="line"><span class="literal">EOF</span></span><br></pre></td></tr></table></figure>
-<p>| ： 管道，将一个命令的输出作为另一个命令的输入。</p>
-<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><ul>
-<li>还不错的参考</li>
+<img src="/2018/06/08/Linux-GPIO-Pinctrl-Subsystem/pinctrl.png" title="Linux pinctrl">
+<p>底层的pin controller driver是硬件相关的模组，初始化的时候会向pin control core模块注册pin control设备（通过pinctrl_register这个bootom level interface）。pin control core模块是一个硬件无关模块，它抽象了所有pin controller的硬件特性，仅仅从用户（各个driver就是pin control subsystem的用户）角度给出了top level的接口函数，这样，各个driver不需要关注pin controller的底层硬件相关的内容。</p>
+<ul>
+<li>GPIO subsystem的模块图</li>
 </ul>
-<p><a href="https://github.com/wzb56/13_questions_of_shell" target="_blank" rel="noopener">shell 十三问</a></p>
+<img src="/2018/06/08/Linux-GPIO-Pinctrl-Subsystem/io.png" title="Linux gpio">
+<p>基本上这个软件框架图和pin control subsystem是一样的，其软件抽象的思想也是一样的，当然其内部具体的实现不一样。</p>
+<p>后对照Allwinner H5 Linux3.10的实际代码看，Pinctrl和Gpio是整合到一起的，传统gpio的调用最终还是到Pinctrl下面的API来实现。整体框架如下：<br><img src="/2018/06/08/Linux-GPIO-Pinctrl-Subsystem/sys.png" title="Linux pinctrl subsystem"></p>
+<h5 id="1-普通Driver如何调用pinctrl"><a href="#1-普通Driver如何调用pinctrl" class="headerlink" title="1. 普通Driver如何调用pinctrl"></a>1. 普通Driver如何调用pinctrl</h5><p>上图从上往下看，普通Driver调用pin control subsystem的主要目标是：1.设定该设备的功能复用；2. 设定该device对应的那些pin的电气特性。以emmc模块驱动(<code>sunxi-mmc.c</code>)为例：<br>DTS中Emmc部分的配置为：<br><figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">sdc0:</span> <span class="class">sdmmc@01c0f000 </span>&#123;</span><br><span class="line"> compatible = <span class="string">"allwinner,sun50i-sdmmc0"</span>;</span><br><span class="line"> pinctrl-names = <span class="string">"default"</span>,<span class="string">"sleep"</span>;</span><br><span class="line"> pinctrl<span class="number">-0</span> = <span class="params">&lt;<span class="variable">&amp;sdc0_pins_a</span>&gt;</span>;</span><br><span class="line"> pinctrl<span class="number">-1</span> = <span class="params">&lt;<span class="variable">&amp;sdc0_pins_b</span>&gt;</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>Pinctrl部分的DTS配置为：<br><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">r_pio:</span> pinctrl@<span class="number">01</span>f02c00 &#123;</span><br><span class="line"> compatible = <span class="string">"allwinner,sun50i-r-pinctrl"</span><span class="comment">;</span></span><br><span class="line"></span><br><span class="line"><span class="symbol"> sdc0_pins_a:</span> sdc0@<span class="number">0</span> &#123;</span><br><span class="line">  allwinner,pins = <span class="string">"PF0"</span>, <span class="string">"PF1"</span>, <span class="string">"PF2"</span>, <span class="string">"PF3"</span>,<span class="string">"PF4"</span>,<span class="string">"PF5"</span><span class="comment">;</span></span><br><span class="line">  allwinner,function = <span class="string">"sdc0"</span><span class="comment">;</span></span><br><span class="line">  allwinner,muxsel = &lt;<span class="number">2</span>&gt;<span class="comment">;</span></span><br><span class="line">  allwinner,drive = &lt;<span class="number">1</span>&gt;<span class="comment">;</span></span><br><span class="line">  allwinner,pull = &lt;<span class="number">1</span>&gt;<span class="comment">;</span></span><br><span class="line"> &#125;<span class="comment">;</span></span><br><span class="line"></span><br><span class="line"><span class="symbol"> sdc0_pins_b:</span> sdc0@<span class="number">1</span> &#123;</span><br><span class="line">  allwinner,pins = <span class="string">"PF0"</span>, <span class="string">"PF1"</span>, <span class="string">"PF2"</span>, <span class="string">"PF3"</span>,<span class="string">"PF4"</span>,<span class="string">"PF5"</span><span class="comment">;</span></span><br><span class="line">  allwinner,function = <span class="string">"io_disabled"</span><span class="comment">;</span></span><br><span class="line">  allwinner,muxsel = &lt;<span class="number">7</span>&gt;<span class="comment">;</span></span><br><span class="line">  allwinner,drive = &lt;<span class="number">1</span>&gt;<span class="comment">;</span></span><br><span class="line">  allwinner,pull = &lt;<span class="number">1</span>&gt;<span class="comment">;</span></span><br><span class="line"> &#125;<span class="comment">;</span></span><br></pre></td></tr></table></figure></p>
+<p>其中pinctrl中有两种状态，default是默认状态，从上面dts配置可以看出配置为sdc0的Function，sleep是休眠时或是emmc关闭时调用的状态，从上可看出配置为io_disabled状态。<br>代码中调用的流程：<br><figure class="highlight pf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">host-&gt;pinctrl = devm_pinctrl_get(&amp;pdev-&gt;dev);      </span><br><span class="line">---  <span class="number">1</span>. 获取设备（设备模型中的struct device）的pin control <span class="keyword">state</span> holder（struct pinctrl）</span><br><span class="line">host-&gt;pins_default = pinctrl_lookup_state(host-&gt;pinctrl,PINCTRL_STATE_DEFAULT);  </span><br><span class="line">-- <span class="number">2</span>a. 根据<span class="keyword">state</span> name在pin control <span class="keyword">state</span> holder找到对应的pin control <span class="keyword">state</span>, 这里是<span class="keyword">default</span></span><br><span class="line">host-&gt;pins_sleep = pinctrl_lookup_state(host-&gt;pinctrl,PINCTRL_STATE_SLEEP);</span><br><span class="line">-- <span class="number">2</span>b. 这里是sleep状态</span><br><span class="line">ret = pinctrl_select_state(host-&gt;pinctrl , host-&gt;pins_sleep); -- <span class="number">3</span>a. 休眠时或是emmc关闭时调用</span><br><span class="line">rval = pinctrl_select_state(host-&gt;pinctrl, host-&gt;pins_default); -- <span class="number">3</span>b. 打开时调用</span><br></pre></td></tr></table></figure></p>
+<h5 id="2-板级Pinctrl-driver如何注册"><a href="#2-板级Pinctrl-driver如何注册" class="headerlink" title="2. 板级Pinctrl driver如何注册"></a>2. 板级Pinctrl driver如何注册</h5><p>pinctrl driver根据pin controller的实际情况，实现struct pinctrl_desc（包括pin/pin group的抽象，function的抽象，pinconf、pinmux的operation API实现，dt_node_to_map的实现，等等），并注册到kernel中。<br>代码流程–&gt;<code>pinctrl-sun50iw1p1.c</code>开始：<br><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">sun50iw1p1_pinctrl_probe</span> </span><br><span class="line">    <span class="comment">--&gt; sunxi_pinctrl_init(pdev,&amp;sun50iw1p1_pinctrl_data);  -- 其中sun50iw1p1_pinctrl_data描述了所有IO的Function及irq状况</span></span><br><span class="line">    <span class="comment">--&gt;</span></span><br><span class="line">     pctrl_desc-&gt;confops = &amp;sunxi_pconf_ops;   <span class="comment">-- 操作函数是用来配置引脚的特性,如pull-up/down，driver strength</span></span><br><span class="line">     pctrl_desc-&gt;pctlops = &amp;sunxi_pctrl_ops;  <span class="comment">-- dts 功能group的相关解析</span></span><br><span class="line">     pctrl_desc-&gt;pmxops = &amp;sunxi_pmx_ops; <span class="comment">-- 功能复用enable/disable，gpio方向</span></span><br><span class="line">    <span class="comment">--&gt;</span></span><br><span class="line">     pctl-&gt;pctl_dev = pinctrl_register(pctrl_desc,&amp;pdev-&gt;dev, pctl); <span class="comment">-- 注册到pin control subsystem</span></span><br></pre></td></tr></table></figure></p>
+<h5 id="3-Gpio如何关联"><a href="#3-Gpio如何关联" class="headerlink" title="3. Gpio如何关联"></a>3. Gpio如何关联</h5><p>GPIO的HW block应该和其他功能复用的block是对等关系的，它们共同输入到一个复用器block，这个block的寄存器控制哪一个功能电路目前是active的。</p>
+<img src="/2018/06/08/Linux-GPIO-Pinctrl-Subsystem/gpio.png" title="gpio">
+<p>代码中，<code>sunxi_pinctrl_init(pdev,&amp;sun50iw1p1_pinctrl_data)</code>–&gt;<br><figure class="highlight xl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">pctl</span>-&gt;</span><span class="function"><span class="title">chip</span>-&gt;</span>request = sunxi_pinctrl_gpio_request,</span><br><span class="line"><span class="function"><span class="title">pctl</span>-&gt;</span><span class="function"><span class="title">chip</span>-&gt;</span>free = sunxi_pinctrl_gpio_free,</span><br><span class="line"><span class="function"><span class="title">pctl</span>-&gt;</span><span class="function"><span class="title">chip</span>-&gt;</span>direction_input = sunxi_pinctrl_gpio_direction_input,</span><br><span class="line"><span class="function"><span class="title">pctl</span>-&gt;</span><span class="function"><span class="title">chip</span>-&gt;</span>direction_output = sunxi_pinctrl_gpio_direction_output,</span><br><span class="line"><span class="function"><span class="title">pctl</span>-&gt;</span><span class="function"><span class="title">chip</span>-&gt;</span>get = sunxi_pinctrl_gpio_get,</span><br><span class="line"><span class="function"><span class="title">pctl</span>-&gt;</span><span class="function"><span class="title">chip</span>-&gt;</span>set = sunxi_pinctrl_gpio_set,</span><br><span class="line"><span class="function"><span class="title">pctl</span>-&gt;</span><span class="function"><span class="title">chip</span>-&gt;</span>set_debounce = sunxi_pinctrl_gpio_set_debounce,</span><br><span class="line"><span class="function"><span class="title">pctl</span>-&gt;</span><span class="function"><span class="title">chip</span>-&gt;</span>of_xlate = sunxi_pinctrl_gpio_of_xlate,</span><br><span class="line"><span class="function"><span class="title">pctl</span>-&gt;</span><span class="function"><span class="title">chip</span>-&gt;</span>to_irq = sunxi_pinctrl_gpio_to_irq,</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">ret</span> = gpiochip_add(pctl-&gt;</span>chip);</span><br><span class="line"><span class="keyword">if</span> (ret)</span><br><span class="line"> goto pinctrl_error;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">for</span> (i = 0; i &lt; pctl-&gt;</span><span class="function"><span class="title">desc</span>-&gt;</span>npins; i++) &#123;</span><br><span class="line"> <span class="function"><span class="title">const</span> struct sunxi_desc_pin *pin = pctl-&gt;</span><span class="function"><span class="title">desc</span>-&gt;</span>pins + i;</span><br><span class="line"></span><br><span class="line"> <span class="function"><span class="title">ret</span> = gpiochip_add_pin_range(pctl-&gt;</span><span class="function"><span class="title">chip</span>, dev_name(&amp;pdev-&gt;</span>dev),</span><br><span class="line">         <span class="function"><span class="title">pin</span>-&gt;</span><span class="function"><span class="title">pin</span>.number - pctl-&gt;</span><span class="function"><span class="title">desc</span>-&gt;</span>pin_base,</span><br><span class="line">         <span class="function"><span class="title">pin</span>-&gt;</span>pin.number, <span class="number">1</span>);</span><br><span class="line"> <span class="keyword">if</span> (ret)</span><br><span class="line">  goto gpiochip_error;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>通过gpiochip_add(<code>gpiolib.c</code>)将 pctl-&gt;chip中指定的api与gpio子系统关联起来，以<code>gpiod_direction_output</code>为例：<br><figure class="highlight xl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">gpiod_direction_output</span> ----&gt;</span> </span><br><span class="line">    <span class="function"><span class="title">chip</span>-&gt;</span><span class="function"><span class="title">direction_output</span>(chip, offset, value) ----&gt;</span></span><br><span class="line">        <span class="function"><span class="title">pctl</span>-&gt;</span><span class="function"><span class="title">chip</span>-&gt;</span><span class="function"><span class="title">direction_output</span> = sunxi_pinctrl_gpio_direction_output  ----&gt;</span></span><br><span class="line">            <span class="function"><span class="title">pinctrl_gpio_direction_output</span>(chip-&gt;</span><span class="function"><span class="title">base</span> + offset) ----&gt;</span></span><br><span class="line">                <span class="function"><span class="title">pinctrl_gpio_direction</span>(gpio, <span class="literal">false</span>)  ----&gt;</span></span><br><span class="line">                    <span class="function"><span class="title">pinmux_gpio_direction</span>(pctldev, range, pin, input) ----&gt;</span></span><br><span class="line">                        <span class="function"><span class="title">ops</span>-&gt;</span><span class="function"><span class="title">gpio_set_direction</span>(pctldev, range, pin, input) ----&gt;</span></span><br><span class="line">                            <span class="function"><span class="title">sunxi_pmx_gpio_set_direction</span>  ----&gt;</span>  pinmux_ops里面的callback，所以最终回到pinctrl driver</span><br><span class="line">                                <span class="function"><span class="title">sunxi_pmx_set</span>(pctldev, offset, desc-&gt;</span>muxval, <span class="literal">true</span>)  -- 最终控制 寄存器的地方</span><br></pre></td></tr></table></figure></p>
+<p>以上只是根据allwinner H5实际代码大略分析，具体可以参考以下。</p>
+<h3 id="refs"><a href="#refs" class="headerlink" title="refs"></a>refs</h3><p><a href="http://www.wowotech.net/sort/gpio_subsystem" target="_blank" rel="noopener">Linux GOIO子系统-wowo</a></p>
 
       
     </div>
@@ -594,7 +529,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/shell/" rel="tag"># shell</a>
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
           
         </div>
       
@@ -607,8 +542,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/04/17/Build github pages with Hexo+NexT/" rel="next" title="Build github pages with Hexo+NexT">
-                <i class="fa fa-chevron-left"></i> Build github pages with Hexo+NexT
+              <a href="/2018/06/07/Linux-clock-subsystem/" rel="next" title="Linux clock subsystem">
+                <i class="fa fa-chevron-left"></i> Linux clock subsystem
               </a>
             
           </div>
@@ -616,10 +551,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/04/20/Build-Ubuntu-for-ARM-Platform-From-Scratch/" rel="prev" title="从头开始移植Ubuntu系统到ARM平台（基于全志H3）">
-                从头开始移植Ubuntu系统到ARM平台（基于全志H3） <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -813,7 +744,7 @@ show_date_time();
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#系统命令何其多"><span class="nav-number">1.</span> <span class="nav-text">系统命令何其多</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#用户管理"><span class="nav-number">1.0.1.</span> <span class="nav-text">用户管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#文件管理"><span class="nav-number">1.0.2.</span> <span class="nav-text">文件管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#文件系统"><span class="nav-number">1.0.3.</span> <span class="nav-text">文件系统</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#字符处理"><span class="nav-number">1.0.4.</span> <span class="nav-text">字符处理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#网络管理"><span class="nav-number">1.0.5.</span> <span class="nav-text">网络管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#进程管理"><span class="nav-number">1.0.6.</span> <span class="nav-text">进程管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#正则表达式"><span class="nav-number">1.0.7.</span> <span class="nav-text">正则表达式</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#shell编程"><span class="nav-number">2.</span> <span class="nav-text">shell编程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#shell-内建命令"><span class="nav-number">2.0.1.</span> <span class="nav-text">shell 内建命令</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#基础"><span class="nav-number">2.0.2.</span> <span class="nav-text">基础</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#测试判断与循环"><span class="nav-number">2.0.3.</span> <span class="nav-text">测试判断与循环</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#重定向"><span class="nav-number">2.0.4.</span> <span class="nav-text">重定向</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#最后"><span class="nav-number">3.</span> <span class="nav-text">最后</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#软件架构"><span class="nav-number">2.</span> <span class="nav-text">软件架构</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-普通Driver如何调用pinctrl"><span class="nav-number">2.0.1.</span> <span class="nav-text">1. 普通Driver如何调用pinctrl</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-板级Pinctrl-driver如何注册"><span class="nav-number">2.0.2.</span> <span class="nav-text">2. 板级Pinctrl driver如何注册</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-Gpio如何关联"><span class="nav-number">2.0.3.</span> <span class="nav-text">3. Gpio如何关联</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#refs"><span class="nav-number">3.</span> <span class="nav-text">refs</span></a></li></ol></div>
             
 
           </div>
@@ -989,7 +920,7 @@ show_date_time();
 		_hcwp.push({widget:"Bloggerstream", widget_id: 103842, selector:".hc-comment-count", label: "{\%COUNT%\}" });
 
 		
-		_hcwp.push({widget:"Stream", widget_id: 103842, xid: "2018/04/20/Linux-command-and-shell/"});
+		_hcwp.push({widget:"Stream", widget_id: 103842, xid: "2018/06/08/Linux-GPIO-Pinctrl-Subsystem/"});
 		
 
 		(function() {
